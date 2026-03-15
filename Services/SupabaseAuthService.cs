@@ -54,7 +54,7 @@ public sealed class SupabaseAuthService
             return new AuthorizationResult(false, StatusCodes.Status403Forbidden, "Insufficient role for this resource.", null);
         }
 
-        var authenticatedUser = new AuthenticatedUser(userValue.Id, userValue.Email, role.Value);
+        var authenticatedUser = new AuthenticatedUser(userValue.Id, userValue.Email, role.Value, accessToken);
         return new AuthorizationResult(true, StatusCodes.Status200OK, null, authenticatedUser);
     }
 

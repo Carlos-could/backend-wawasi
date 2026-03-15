@@ -2,8 +2,9 @@ namespace BackendWawasi.Auth;
 
 public enum AppRole
 {
-    Member = 10,
-    Admin = 20
+    Inquilino = 10,
+    Propietario = 20,
+    Admin = 30
 }
 
 public static class AppRoleExtensions
@@ -17,13 +18,20 @@ public static class AppRoleExtensions
     {
         return raw?.Trim().ToLowerInvariant() switch
         {
+            "propietario" => AppRole.Propietario,
+            "member" => AppRole.Propietario,
             "admin" => AppRole.Admin,
-            _ => AppRole.Member
+            _ => AppRole.Inquilino
         };
     }
 
     public static string ToWireValue(this AppRole role)
     {
-        return role == AppRole.Admin ? "admin" : "member";
+        return role switch
+        {
+            AppRole.Admin => "admin",
+            AppRole.Propietario => "propietario",
+            _ => "inquilino"
+        };
     }
 }
