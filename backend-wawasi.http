@@ -1,0 +1,6 @@
+@backend_wawasi_temp_HostAddress = http://localhost:5095
+
+GET {{backend_wawasi_temp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
