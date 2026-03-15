@@ -3,7 +3,8 @@ namespace BackendWawasi.Auth;
 public sealed record AuthenticatedUser(
     Guid Id,
     string? Email,
-    AppRole Role
+    AppRole Role,
+    string AccessToken
 );
 
 public sealed record AuthorizationResult(
