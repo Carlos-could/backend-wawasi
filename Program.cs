@@ -10,6 +10,7 @@ builder.Services.AddHealthChecks();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<SupabaseAuthService>();
 builder.Services.AddScoped<PropertiesService>();
+builder.Services.AddScoped<PropertyPhotosService>();
 builder.Services.AddCors(options =>
 {
     var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
@@ -222,6 +223,281 @@ app.MapPut("/api/v1/properties/{id:guid}", async (
     }
 
     return Results.Ok(updated);
+});
+
+app.MapGet("/api/v1/properties/{id:guid}/photos", async (
+    Guid id,
+    HttpRequest request,
+    SupabaseAuthService authService,
+    PropertiesService propertiesService,
+    PropertyPhotosService photosService,
+    CancellationToken cancellationToken) =>
+{
+    var auth = await authService.RequireMinimumRoleAsync(request, AppRole.Propietario, cancellationToken);
+    if (!auth.IsAuthorized)
+    {
+        return Results.Problem(auth.Error, statusCode: auth.StatusCode);
+    }
+
+    PropertyResponse? property;
+    try
+    {
+        property = await propertiesService.GetByIdAsync(id, auth.User!.AccessToken, cancellationToken);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+
+    if (property is null)
+    {
+        return Results.NotFound();
+    }
+
+    if (auth.User.Role != AppRole.Admin && property.CreatedBy != auth.User.Id)
+    {
+        return Results.Problem("No tienes permisos para acceder a las fotos de esta propiedad.", statusCode: StatusCodes.Status403Forbidden);
+    }
+
+    try
+    {
+        var photos = await photosService.ListAsync(id, auth.User.AccessToken, cancellationToken);
+        return Results.Ok(photos);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+});
+
+app.MapPost("/api/v1/properties/{id:guid}/photos", async (
+    Guid id,
+    HttpRequest request,
+    SupabaseAuthService authService,
+    PropertiesService propertiesService,
+    PropertyPhotosService photosService,
+    CancellationToken cancellationToken) =>
+{
+    var auth = await authService.RequireMinimumRoleAsync(request, AppRole.Propietario, cancellationToken);
+    if (!auth.IsAuthorized)
+    {
+        return Results.Problem(auth.Error, statusCode: auth.StatusCode);
+    }
+
+    PropertyResponse? property;
+    try
+    {
+        property = await propertiesService.GetByIdAsync(id, auth.User!.AccessToken, cancellationToken);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+
+    if (property is null)
+    {
+        return Results.NotFound();
+    }
+
+    if (auth.User.Role != AppRole.Admin && property.CreatedBy != auth.User.Id)
+    {
+        return Results.Problem("No tienes permisos para subir fotos en esta propiedad.", statusCode: StatusCodes.Status403Forbidden);
+    }
+
+    IFormCollection form;
+    try
+    {
+        form = await request.ReadFormAsync(cancellationToken);
+    }
+    catch (InvalidDataException)
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["files"] = ["No se pudo leer el formulario de subida."]
+        });
+    }
+
+    var files = form.Files.GetFiles("files[]");
+    if (files.Count == 0 && form.Files.Count > 0)
+    {
+        files = [.. form.Files];
+    }
+
+    try
+    {
+        var photos = await photosService.UploadAsync(id, files, auth.User.AccessToken, cancellationToken);
+        return Results.Ok(photos);
+    }
+    catch (ArgumentException ex)
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["files"] = [ex.Message]
+        });
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+}).DisableAntiforgery();
+
+app.MapPatch("/api/v1/properties/{id:guid}/photos/order", async (
+    Guid id,
+    HttpRequest request,
+    ReorderPropertyPhotosRequest payload,
+    SupabaseAuthService authService,
+    PropertiesService propertiesService,
+    PropertyPhotosService photosService,
+    CancellationToken cancellationToken) =>
+{
+    var auth = await authService.RequireMinimumRoleAsync(request, AppRole.Propietario, cancellationToken);
+    if (!auth.IsAuthorized)
+    {
+        return Results.Problem(auth.Error, statusCode: auth.StatusCode);
+    }
+
+    PropertyResponse? property;
+    try
+    {
+        property = await propertiesService.GetByIdAsync(id, auth.User!.AccessToken, cancellationToken);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+
+    if (property is null)
+    {
+        return Results.NotFound();
+    }
+
+    if (auth.User.Role != AppRole.Admin && property.CreatedBy != auth.User.Id)
+    {
+        return Results.Problem("No tienes permisos para reordenar fotos en esta propiedad.", statusCode: StatusCodes.Status403Forbidden);
+    }
+
+    try
+    {
+        var photos = await photosService.ReorderAsync(id, payload.PhotoIds, auth.User.AccessToken, cancellationToken);
+        return Results.Ok(photos);
+    }
+    catch (ArgumentException ex)
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            [nameof(payload.PhotoIds)] = [ex.Message]
+        });
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+});
+
+app.MapPatch("/api/v1/properties/{id:guid}/photos/{photoId:guid}/primary", async (
+    Guid id,
+    Guid photoId,
+    HttpRequest request,
+    SupabaseAuthService authService,
+    PropertiesService propertiesService,
+    PropertyPhotosService photosService,
+    CancellationToken cancellationToken) =>
+{
+    var auth = await authService.RequireMinimumRoleAsync(request, AppRole.Propietario, cancellationToken);
+    if (!auth.IsAuthorized)
+    {
+        return Results.Problem(auth.Error, statusCode: auth.StatusCode);
+    }
+
+    PropertyResponse? property;
+    try
+    {
+        property = await propertiesService.GetByIdAsync(id, auth.User!.AccessToken, cancellationToken);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+
+    if (property is null)
+    {
+        return Results.NotFound();
+    }
+
+    if (auth.User.Role != AppRole.Admin && property.CreatedBy != auth.User.Id)
+    {
+        return Results.Problem("No tienes permisos para marcar principal en esta propiedad.", statusCode: StatusCodes.Status403Forbidden);
+    }
+
+    try
+    {
+        var photos = await photosService.SetPrimaryAsync(id, photoId, auth.User.AccessToken, cancellationToken);
+        return Results.Ok(photos);
+    }
+    catch (ArgumentException ex)
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["photoId"] = [ex.Message]
+        });
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+});
+
+app.MapDelete("/api/v1/properties/{id:guid}/photos/{photoId:guid}", async (
+    Guid id,
+    Guid photoId,
+    HttpRequest request,
+    SupabaseAuthService authService,
+    PropertiesService propertiesService,
+    PropertyPhotosService photosService,
+    CancellationToken cancellationToken) =>
+{
+    var auth = await authService.RequireMinimumRoleAsync(request, AppRole.Propietario, cancellationToken);
+    if (!auth.IsAuthorized)
+    {
+        return Results.Problem(auth.Error, statusCode: auth.StatusCode);
+    }
+
+    PropertyResponse? property;
+    try
+    {
+        property = await propertiesService.GetByIdAsync(id, auth.User!.AccessToken, cancellationToken);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+
+    if (property is null)
+    {
+        return Results.NotFound();
+    }
+
+    if (auth.User.Role != AppRole.Admin && property.CreatedBy != auth.User.Id)
+    {
+        return Results.Problem("No tienes permisos para eliminar fotos en esta propiedad.", statusCode: StatusCodes.Status403Forbidden);
+    }
+
+    try
+    {
+        var photos = await photosService.DeleteAsync(id, photoId, auth.User.AccessToken, cancellationToken);
+        return Results.Ok(photos);
+    }
+    catch (ArgumentException ex)
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["photoId"] = [ex.Message]
+        });
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
 });
 
 app.Run();

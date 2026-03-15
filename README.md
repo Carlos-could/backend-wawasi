@@ -76,6 +76,27 @@ dotnet run --project backend-wawasi.csproj
 - Test SQL de regresion:
   - `Supabase/tests/f1_t04_properties_rls.sql`
 
+## F1-T05 - Gestion de fotos de propiedad (backend)
+
+- Migracion SQL en `Supabase/migrations/20260315203000_f1_t05_property_photos_management.sql`
+  - crea/actualiza bucket publico `property-images` (8MB, JPG/PNG/WEBP)
+  - ajusta policies RLS de `property_images` para `propietario` dueno y `admin`
+  - agrega constraint de orden no negativo y unicidad de imagen principal por propiedad
+- Endpoints de fotos:
+  - `GET /api/v1/properties/{id}/photos`
+  - `POST /api/v1/properties/{id}/photos` (`multipart/form-data`, campo `files[]`)
+  - `PATCH /api/v1/properties/{id}/photos/order`
+  - `PATCH /api/v1/properties/{id}/photos/{photoId}/primary`
+  - `DELETE /api/v1/properties/{id}/photos/{photoId}`
+- Reglas:
+  - maximo 15 fotos por propiedad
+  - formatos permitidos: JPG, PNG, WEBP
+  - tamano maximo: 8MB por archivo
+  - si no hay principal, la primera foto subida se marca como principal
+  - si se elimina la principal, se promueve la primera por `sort_order`
+- Test SQL de regresion:
+  - `Supabase/tests/f1_t05_property_images_rls.sql`
+
 ## F1-T03 - Modelo de datos MVP propiedades (backend)
 
 - Migracion SQL en `Supabase/migrations/20260315121500_f1_t03_mvp_properties_model.sql`
