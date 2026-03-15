@@ -16,6 +16,10 @@ public static class PropertyValidation
     [
         "draft", "published"
     ];
+    private static readonly HashSet<string> AllowedLocationPrecision =
+    [
+        "approximate", "exact"
+    ];
 
     public static Dictionary<string, string[]> Validate(CreatePropertyRequest request)
     {
@@ -67,6 +71,17 @@ public static class PropertyValidation
 
         if (request.Warmmiete is not null && request.Kaltmiete is not null && request.Warmmiete < request.Kaltmiete)
             AddError(errors, nameof(request.Warmmiete), "Warmmiete debe ser mayor o igual a Kaltmiete.");
+
+        if (request.Lat is not null && (request.Lat < -90 || request.Lat > 90))
+            AddError(errors, nameof(request.Lat), "Lat debe estar entre -90 y 90.");
+        if (request.Lng is not null && (request.Lng < -180 || request.Lng > 180))
+            AddError(errors, nameof(request.Lng), "Lng debe estar entre -180 y 180.");
+        if ((request.Lat is null) != (request.Lng is null))
+            AddError(errors, nameof(request.Lat), "Lat y Lng deben enviarse juntos.");
+
+        if (!string.IsNullOrWhiteSpace(request.LocationPrecision) &&
+            !AllowedLocationPrecision.Contains(request.LocationPrecision))
+            AddError(errors, nameof(request.LocationPrecision), "locationPrecision invalido. Usa approximate o exact.");
 
         return errors;
     }

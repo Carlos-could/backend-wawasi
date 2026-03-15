@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("backend-wawasi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+74fb5c3144863529b1402a808294684ff2c2895e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2bcd9dd5f9f119ce5f9bc048bd338dc81483cf74")]
 [assembly: System.Reflection.AssemblyProductAttribute("backend-wawasi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("backend-wawasi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
