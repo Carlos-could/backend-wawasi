@@ -38,3 +38,15 @@ dotnet run --project backend-wawasi.csproj
 
 - `GET /`: estado del servicio
 - `GET /health`: healthcheck
+
+## F1-T02 - Autenticacion y roles minimos (FULLSTACK backend)
+
+- Migracion SQL en `Supabase/migrations/20260315093000_f1_t02_auth_roles.sql`
+  - crea `public.profiles`
+  - define roles `member` y `admin`
+  - crea trigger de perfil al alta de usuario
+  - aplica politicas RLS minimas
+- Endpoints protegidos:
+  - `GET /api/v1/auth/me` (rol minimo `member`)
+  - `GET /api/v1/admin/health` (rol minimo `admin`)
+- Ambos endpoints requieren header `Authorization: Bearer <access_token>` de Supabase Auth.

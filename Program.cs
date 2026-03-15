@@ -1,9 +1,13 @@
 using BackendWawasi.Configuration;
+using BackendWawasi.Auth;
+using BackendWawasi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<SupabaseAuthService>();
 
 builder.Services
     .AddOptions<SupabaseOptions>()
@@ -26,5 +30,51 @@ app.UseHttpsRedirection();
 
 app.MapGet("/", () => Results.Ok(new { service = "backend-wawasi", status = "up" }));
 app.MapHealthChecks("/health");
+
+app.MapGet("/api/v1/auth/me", async (
+    HttpRequest request,
+    SupabaseAuthService authService,
+    CancellationToken cancellationToken) =>
+{
+    var auth = await authService.RequireMinimumRoleAsync(request, AppRole.Member, cancellationToken);
+    if (!auth.IsAuthorized)
+    {
+        return Results.Json(new { error = auth.Error }, statusCode: auth.StatusCode);
+    }
+
+    return Results.Ok(new
+    {
+        user = new
+        {
+            id = auth.User!.Id,
+            email = auth.User.Email,
+            role = auth.User.Role.ToWireValue()
+        }
+    });
+});
+
+app.MapGet("/api/v1/admin/health", async (
+    HttpRequest request,
+    SupabaseAuthService authService,
+    CancellationToken cancellationToken) =>
+{
+    var auth = await authService.RequireMinimumRoleAsync(request, AppRole.Admin, cancellationToken);
+    if (!auth.IsAuthorized)
+    {
+        return Results.Json(new { error = auth.Error }, statusCode: auth.StatusCode);
+    }
+
+    return Results.Ok(new
+    {
+        ok = true,
+        message = "Admin endpoint enabled.",
+        user = new
+        {
+            id = auth.User!.Id,
+            email = auth.User.Email,
+            role = auth.User.Role.ToWireValue()
+        }
+    });
+});
 
 app.Run();
