@@ -30,3 +30,4 @@ d:\wawasi\backend-wawasi\obj\Debug\net9.0\refint\backend-wawasi.dll
 d:\wawasi\backend-wawasi\obj\Debug\net9.0\backend-wawasi.pdb
 d:\wawasi\backend-wawasi\obj\Debug\net9.0\backend-wawasi.genruntimeconfig.cache
 d:\wawasi\backend-wawasi\obj\Debug\net9.0\ref\backend-wawasi.dll
+D:\wawasi\backend-wawasi\obj\Debug\net9.0\backend-wawasi.sourcelink.json

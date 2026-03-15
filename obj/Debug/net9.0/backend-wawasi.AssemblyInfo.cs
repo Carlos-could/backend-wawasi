@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("backend-wawasi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1cff3bdfaefeb92d28fd943eaf7581237d027b37")]
 [assembly: System.Reflection.AssemblyProductAttribute("backend-wawasi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("backend-wawasi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
