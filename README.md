@@ -114,6 +114,18 @@ dotnet run --project backend-wawasi.csproj
   - `offset` default `0`
   - `limit` default `20`, maximo `50`
 
+## F1-T07 - Detalle publico estilo Redfin-like (backend)
+
+- Endpoint publico de detalle:
+  - `GET /api/v1/public/properties/{id}`
+- Reglas:
+  - solo devuelve propiedades `published`
+  - `404` cuando el inmueble no existe o no esta publicado
+  - incluye galeria ordenada, key facts, breakdown de costes y ubicacion (`exact`/`approximate`)
+  - si no hay `lat/lng`, retorna `location: null` sin romper el contrato
+- Test SQL de regresion:
+  - `Supabase/tests/f1_t07_public_detail_access.sql`
+
 ## F1-T03 - Modelo de datos MVP propiedades (backend)
 
 - Migracion SQL en `Supabase/migrations/20260315121500_f1_t03_mvp_properties_model.sql`

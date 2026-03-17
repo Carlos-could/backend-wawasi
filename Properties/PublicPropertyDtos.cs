@@ -99,3 +99,36 @@ public sealed class PublicPropertyLocation
     public decimal Lng { get; init; }
     public string Precision { get; init; } = "approximate";
 }
+
+public sealed class PublicPropertyDetailResponse
+{
+    public Guid Id { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public decimal Price { get; init; }
+    public string Currency { get; init; } = string.Empty;
+    public string OperationType { get; init; } = string.Empty;
+    public string PropertyType { get; init; } = string.Empty;
+    public string City { get; init; } = string.Empty;
+    public string? Zone { get; init; }
+    public string Country { get; init; } = string.Empty;
+    public string? PostalCode { get; init; }
+    public short? Bedrooms { get; init; }
+    public short? Bathrooms { get; init; }
+    public decimal? AreaM2 { get; init; }
+    public DateOnly? AvailableFrom { get; init; }
+    public decimal? Kaltmiete { get; init; }
+    public decimal? Nebenkosten { get; init; }
+    public decimal? Warmmiete { get; init; }
+    public decimal? Kaution { get; init; }
+    public PublicPropertyLocation? Location { get; init; }
+    public string LocationPrecisionLabel { get; init; } = "Ubicacion aproximada";
+    public List<PublicPropertyImageItem> Images { get; init; } = [];
+}
+
+public sealed class PublicPropertyImageItem
+{
+    public string Url { get; init; } = string.Empty;
+    public bool IsPrimary { get; init; }
+    public int SortOrder { get; init; }
+}
