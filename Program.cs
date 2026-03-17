@@ -87,6 +87,22 @@ app.MapGet("/api/v1/public/properties", async (
     }
 });
 
+app.MapGet("/api/v1/public/properties/{id:guid}", async (
+    Guid id,
+    PublicPropertiesService publicPropertiesService,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var result = await publicPropertiesService.GetByIdAsync(id, cancellationToken);
+        return result is null ? Results.NotFound() : Results.Ok(result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+});
+
 app.MapGet("/api/v1/auth/me", async (
     HttpRequest request,
     SupabaseAuthService authService,
