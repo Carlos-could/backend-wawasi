@@ -134,6 +134,21 @@ public sealed class PublicPropertiesService
         };
     }
 
+    public async Task<PublicPropertyDetailResponse?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var endpoint = $"{_supabaseOptions.Url.TrimEnd('/')}/rest/v1/properties?id=eq.{id}&status=eq.published&select=id,title,description,price,currency,operation_type,property_type,city,zone,country,postal_code,bedrooms,bathrooms,area_m2,available_from,kaltmiete,nebenkosten,warmmiete,kaution,lat,lng,location_precision,property_images(public_url,is_primary,sort_order)";
+        
+        var rows = await SendArrayRequestAsync<PropertyDetailRow>(endpoint, includeCount: false, cancellationToken);
+        var row = rows.FirstOrDefault();
+        if (row is null)
+        {
+            return null;
+        }
+
+        return MapDetailItem(row);
+    }
+
+
     private PublicPropertyListItem MapItem(PropertyListRow row)
     {
         var thumbnail = row.PropertyImages?
@@ -166,6 +181,60 @@ public sealed class PublicPropertiesService
             ThumbnailUrl = thumbnail,
             Location = location,
             CreatedAt = row.CreatedAt
+        };
+    }
+
+    private PublicPropertyDetailResponse MapDetailItem(PropertyDetailRow row)
+    {
+        var precision = row.LocationPrecision is "exact" or "approximate"
+            ? row.LocationPrecision
+            : "approximate";
+
+        var location = row.Lat is not null && row.Lng is not null
+            ? new PublicPropertyLocation
+            {
+                Lat = row.Lat.Value,
+                Lng = row.Lng.Value,
+                Precision = precision
+            }
+            : null;
+
+        var images = row.PropertyImages?
+            .Where(x => !string.IsNullOrWhiteSpace(x.PublicUrl))
+            .Select(x => new PublicPropertyImageItem
+            {
+                Url = x.PublicUrl!,
+                IsPrimary = x.IsPrimary,
+                SortOrder = x.SortOrder
+            })
+            .OrderByDescending(x => x.IsPrimary)
+            .ThenBy(x => x.SortOrder)
+            .ToList() ?? [];
+
+        return new PublicPropertyDetailResponse
+        {
+            Id = row.Id,
+            Title = row.Title,
+            Description = row.Description,
+            Price = row.Price,
+            Currency = row.Currency,
+            OperationType = row.OperationType,
+            PropertyType = row.PropertyType,
+            City = row.City,
+            Zone = row.Zone,
+            Country = row.Country,
+            PostalCode = row.PostalCode,
+            Bedrooms = row.Bedrooms,
+            Bathrooms = row.Bathrooms,
+            AreaM2 = row.AreaM2,
+            AvailableFrom = row.AvailableFrom,
+            Kaltmiete = row.Kaltmiete,
+            Nebenkosten = row.Nebenkosten,
+            Warmmiete = row.Warmmiete,
+            Kaution = row.Kaution,
+            Location = location,
+            LocationPrecisionLabel = precision == "exact" ? "Dirección exacta" : "Ubicación aproximada",
+            Images = images
         };
     }
 
@@ -294,6 +363,78 @@ public sealed class PublicPropertiesService
 
         [JsonPropertyName("created_at")]
         public DateTimeOffset CreatedAt { get; init; }
+
+        [JsonPropertyName("property_images")]
+        public List<PropertyImageRow>? PropertyImages { get; init; }
+    }
+
+    private sealed class PropertyDetailRow
+    {
+        [JsonPropertyName("id")]
+        public Guid Id { get; init; }
+
+        [JsonPropertyName("title")]
+        public string Title { get; init; } = string.Empty;
+
+        [JsonPropertyName("description")]
+        public string? Description { get; init; }
+
+        [JsonPropertyName("price")]
+        public decimal Price { get; init; }
+
+        [JsonPropertyName("currency")]
+        public string Currency { get; init; } = string.Empty;
+
+        [JsonPropertyName("operation_type")]
+        public string OperationType { get; init; } = string.Empty;
+
+        [JsonPropertyName("property_type")]
+        public string PropertyType { get; init; } = string.Empty;
+
+        [JsonPropertyName("city")]
+        public string City { get; init; } = string.Empty;
+
+        [JsonPropertyName("zone")]
+        public string? Zone { get; init; }
+
+        [JsonPropertyName("country")]
+        public string Country { get; init; } = string.Empty;
+
+        [JsonPropertyName("postal_code")]
+        public string? PostalCode { get; init; }
+
+        [JsonPropertyName("bedrooms")]
+        public short? Bedrooms { get; init; }
+
+        [JsonPropertyName("bathrooms")]
+        public short? Bathrooms { get; init; }
+
+        [JsonPropertyName("area_m2")]
+        public decimal? AreaM2 { get; init; }
+
+        [JsonPropertyName("available_from")]
+        public DateOnly? AvailableFrom { get; init; }
+
+        [JsonPropertyName("kaltmiete")]
+        public decimal? Kaltmiete { get; init; }
+
+        [JsonPropertyName("nebenkosten")]
+        public decimal? Nebenkosten { get; init; }
+
+        [JsonPropertyName("warmmiete")]
+        public decimal? Warmmiete { get; init; }
+
+        [JsonPropertyName("kaution")]
+        public decimal? Kaution { get; init; }
+
+        [JsonPropertyName("lat")]
+        public decimal? Lat { get; init; }
+
+        [JsonPropertyName("lng")]
+        public decimal? Lng { get; init; }
+
+        [JsonPropertyName("location_precision")]
+        public string? LocationPrecision { get; init; }
 
         [JsonPropertyName("property_images")]
         public List<PropertyImageRow>? PropertyImages { get; init; }
