@@ -27,6 +27,7 @@ public class CreatePropertyRequest
     public decimal? AreaM2 { get; init; }
     public string? AddressLine { get; init; }
     public string? District { get; init; }
+    public string? Zone { get; init; }
 
     [Required]
     public string City { get; init; } = string.Empty;
@@ -34,6 +35,10 @@ public class CreatePropertyRequest
     [Required]
     public string Country { get; init; } = string.Empty;
     public string? PostalCode { get; init; }
+    public DateOnly? AvailableFrom { get; init; }
+    public decimal? Lat { get; init; }
+    public decimal? Lng { get; init; }
+    public string? LocationPrecision { get; init; }
     public decimal? Kaltmiete { get; init; }
     public decimal? Nebenkosten { get; init; }
     public decimal? Warmmiete { get; init; }
@@ -60,9 +65,14 @@ public sealed class PropertyResponse
     public decimal? AreaM2 { get; init; }
     public string? AddressLine { get; init; }
     public string? District { get; init; }
+    public string? Zone { get; init; }
     public string City { get; init; } = string.Empty;
     public string Country { get; init; } = string.Empty;
     public string? PostalCode { get; init; }
+    public DateOnly? AvailableFrom { get; init; }
+    public decimal? Lat { get; init; }
+    public decimal? Lng { get; init; }
+    public string LocationPrecision { get; init; } = "approximate";
     public decimal? Kaltmiete { get; init; }
     public decimal? Nebenkosten { get; init; }
     public decimal? Warmmiete { get; init; }
