@@ -97,6 +97,23 @@ dotnet run --project backend-wawasi.csproj
 - Test SQL de regresion:
   - `Supabase/tests/f1_t05_property_images_rls.sql`
 
+## F1-T06 - Listado publico con busqueda, filtros basicos y mapa/lista (backend)
+
+- Migracion SQL en `Supabase/migrations/20260316103000_f1_t06_public_listing_search_map.sql`
+  - agrega campos en `properties`: `zone`, `available_from`, `lat`, `lng`, `location_precision`
+  - agrega constraints de precision de ubicacion y rango de coordenadas
+  - ajusta policies RLS de `properties` y `property_images`:
+    - lectura publica (`anon`) solo para `status='published'`
+    - lectura privada por dueno/admin se mantiene para usuarios autenticados
+- Endpoints publicos:
+  - `GET /api/v1/public/properties/suggestions?q=...` (maximo 5)
+  - `GET /api/v1/public/properties?q=&cityPostal=&priceMax=&bedrooms=&areaMin=&availableFrom=&sort=&offset=&limit=`
+- `sort` soportado:
+  - `recent` (default), `price_asc`, `price_desc`
+- Paginacion:
+  - `offset` default `0`
+  - `limit` default `20`, maximo `50`
+
 ## F1-T03 - Modelo de datos MVP propiedades (backend)
 
 - Migracion SQL en `Supabase/migrations/20260315121500_f1_t03_mvp_properties_model.sql`

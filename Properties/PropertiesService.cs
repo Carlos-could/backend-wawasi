@@ -92,9 +92,16 @@ public sealed class PropertiesService
             AreaM2 = request.AreaM2;
             AddressLine = request.AddressLine?.Trim();
             District = request.District?.Trim();
+            Zone = request.Zone?.Trim();
             City = request.City.Trim();
             Country = request.Country.Trim();
             PostalCode = request.PostalCode?.Trim();
+            AvailableFrom = request.AvailableFrom;
+            Lat = request.Lat;
+            Lng = request.Lng;
+            LocationPrecision = string.IsNullOrWhiteSpace(request.LocationPrecision)
+                ? "approximate"
+                : request.LocationPrecision.Trim().ToLowerInvariant();
             Kaltmiete = request.Kaltmiete;
             Nebenkosten = request.Nebenkosten;
             Warmmiete = request.Warmmiete;
@@ -147,6 +154,10 @@ public sealed class PropertiesService
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? District { get; }
 
+        [JsonPropertyName("zone")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? Zone { get; }
+
         [JsonPropertyName("city")]
         public string City { get; }
 
@@ -156,6 +167,21 @@ public sealed class PropertiesService
         [JsonPropertyName("postal_code")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? PostalCode { get; }
+
+        [JsonPropertyName("available_from")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public DateOnly? AvailableFrom { get; }
+
+        [JsonPropertyName("lat")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public decimal? Lat { get; }
+
+        [JsonPropertyName("lng")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public decimal? Lng { get; }
+
+        [JsonPropertyName("location_precision")]
+        public string LocationPrecision { get; }
 
         [JsonPropertyName("kaltmiete")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -224,6 +250,9 @@ public sealed class PropertiesService
         [JsonPropertyName("district")]
         public string? District { get; init; }
 
+        [JsonPropertyName("zone")]
+        public string? Zone { get; init; }
+
         [JsonPropertyName("city")]
         public string City { get; init; } = string.Empty;
 
@@ -232,6 +261,18 @@ public sealed class PropertiesService
 
         [JsonPropertyName("postal_code")]
         public string? PostalCode { get; init; }
+
+        [JsonPropertyName("available_from")]
+        public DateOnly? AvailableFrom { get; init; }
+
+        [JsonPropertyName("lat")]
+        public decimal? Lat { get; init; }
+
+        [JsonPropertyName("lng")]
+        public decimal? Lng { get; init; }
+
+        [JsonPropertyName("location_precision")]
+        public string? LocationPrecision { get; init; }
 
         [JsonPropertyName("kaltmiete")]
         public decimal? Kaltmiete { get; init; }
@@ -265,9 +306,14 @@ public sealed class PropertiesService
                 AreaM2 = AreaM2,
                 AddressLine = AddressLine,
                 District = District,
+                Zone = Zone,
                 City = City,
                 Country = Country,
                 PostalCode = PostalCode,
+                AvailableFrom = AvailableFrom,
+                Lat = Lat,
+                Lng = Lng,
+                LocationPrecision = string.IsNullOrWhiteSpace(LocationPrecision) ? "approximate" : LocationPrecision,
                 Kaltmiete = Kaltmiete,
                 Nebenkosten = Nebenkosten,
                 Warmmiete = Warmmiete,

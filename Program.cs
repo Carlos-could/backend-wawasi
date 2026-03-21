@@ -11,6 +11,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<SupabaseAuthService>();
 builder.Services.AddScoped<PropertiesService>();
 builder.Services.AddScoped<PropertyPhotosService>();
+builder.Services.AddScoped<PublicPropertiesService>();
 builder.Services.AddCors(options =>
 {
     var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
@@ -47,6 +48,44 @@ app.UseCors("FrontendCors");
 
 app.MapGet("/", () => Results.Ok(new { service = "backend-wawasi", status = "up" }));
 app.MapHealthChecks("/health");
+
+app.MapGet("/api/v1/public/properties/suggestions", async (
+    string? q,
+    PublicPropertiesService publicPropertiesService,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var result = await publicPropertiesService.GetSuggestionsAsync(q, cancellationToken);
+        return Results.Ok(result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+});
+
+app.MapGet("/api/v1/public/properties", async (
+    [AsParameters] PublicPropertySearchQuery query,
+    PublicPropertiesService publicPropertiesService,
+    CancellationToken cancellationToken) =>
+{
+    var errors = query.Validate();
+    if (errors.Count > 0)
+    {
+        return Results.ValidationProblem(errors);
+    }
+
+    try
+    {
+        var result = await publicPropertiesService.SearchAsync(query, cancellationToken);
+        return Results.Ok(result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+});
 
 app.MapGet("/api/v1/auth/me", async (
     HttpRequest request,
