@@ -5,6 +5,7 @@
 -- Limpiar políticas de selección previas
 drop policy if exists "properties_select_authenticated" on public.properties;
 drop policy if exists "properties_select_all" on public.properties;
+drop policy if exists "properties_select_policy" on public.properties;
 
 -- Nueva política: Los usuarios autenticados solo ven propiedades publicadas,
 -- a menos que sean los creadores de la propiedad o administradores.
@@ -41,7 +42,7 @@ using (
 
 -- 2. Reforzar RLS en public.property_images
 -- Sincronizar lectura de imágenes con la visibilidad de la propiedad
-drop policy if exists "property_images_select_authenticated" on public.property_images;
+drop policy if exists "property_images_select_policy" on public.property_images;
 create policy "property_images_select_policy"
 on public.property_images
 for select
@@ -81,6 +82,7 @@ create table if not exists public.logs (
 alter table public.logs enable row level security;
 
 -- Política: Permitir inserción "ciega" a usuarios autenticados (para reportar errores)
+drop policy if exists "logs_insert_authenticated" on public.logs;
 create policy "logs_insert_authenticated"
 on public.logs
 for insert
@@ -88,6 +90,7 @@ to authenticated
 with check (auth.uid() = user_id or user_id is null);
 
 -- Política: Solo admins pueden leer los logs
+drop policy if exists "logs_select_admin" on public.logs;
 create policy "logs_select_admin"
 on public.logs
 for select
