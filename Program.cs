@@ -28,8 +28,9 @@ builder.Services
     .Validate(
         options => !string.IsNullOrWhiteSpace(options.Url) &&
                    !string.IsNullOrWhiteSpace(options.AnonKey) &&
-                   !string.IsNullOrWhiteSpace(options.ServiceRoleKey),
-        "Supabase configuration is missing. Set Supabase:Url, Supabase:AnonKey and Supabase:ServiceRoleKey.")
+                   !string.IsNullOrWhiteSpace(options.ServiceRoleKey) &&
+                   !string.IsNullOrWhiteSpace(options.JwtSecret),
+        "Supabase configuration is missing. Set Supabase:Url, Supabase:AnonKey, Supabase:ServiceRoleKey and Supabase:JwtSecret.")
     .ValidateOnStart();
 
 var app = builder.Build();

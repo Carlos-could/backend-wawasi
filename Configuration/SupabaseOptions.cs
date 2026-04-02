@@ -9,4 +9,6 @@ public sealed class SupabaseOptions
     public string AnonKey { get; init; } = string.Empty;
 
     public string ServiceRoleKey { get; init; } = string.Empty;
+
+    public string JwtSecret { get; init; } = string.Empty;
 }
