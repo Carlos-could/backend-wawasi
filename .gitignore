@@ -49,6 +49,10 @@ nunit-*.xml
 .idea/
 .vscode/
 
+# Build logs
+build.log
+*.log
+
 # Environment variables
 .env
 appsettings.Development.json
