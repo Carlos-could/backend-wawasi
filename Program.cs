@@ -1,6 +1,9 @@
 using BackendWawasi.Configuration;
 using BackendWawasi.Auth;
 using BackendWawasi.Services;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,10 +25,36 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Gestor de claves JWKS de Supabase (cachea y refresca las claves públicas de firma).
+builder.Services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>(sp =>
+{
+    var supabase = sp.GetRequiredService<IOptions<SupabaseOptions>>().Value;
+    var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
+    return new ConfigurationManager<OpenIdConnectConfiguration>(
+        supabase.ResolvedOidcMetadataUrl,
+        new OpenIdConnectConfigurationRetriever(),
+        new HttpDocumentRetriever(httpClient) { RequireHttps = true });
+});
+builder.Services.AddCors(options =>
+{
+    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+    var origins = allowedOrigins is { Length: > 0 } ? allowedOrigins : ["http://localhost:3000"];
+
+    options.AddPolicy("FrontendCors", policy =>
+    {
+        policy
+            .WithOrigins(origins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services
     .AddOptions<SupabaseOptions>()
     .Bind(builder.Configuration.GetSection(SupabaseOptions.SectionName))
     .Validate(
+        // JwtSecret es opcional: solo se usa para validar tokens HS256 legacy.
+        // La firma actual (ECC) se valida vía JWKS derivado de Url.
         options => !string.IsNullOrWhiteSpace(options.Url) &&
                    !string.IsNullOrWhiteSpace(options.AnonKey) &&
                    !string.IsNullOrWhiteSpace(options.ServiceRoleKey) &&
