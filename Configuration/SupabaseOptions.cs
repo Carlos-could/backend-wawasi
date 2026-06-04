@@ -17,13 +17,14 @@ public sealed class SupabaseOptions
     public string JwtSecret { get; init; } = string.Empty;
 
     /// <summary>
-    /// Endpoint JWKS de GoTrue. Si está vacío se deriva de <see cref="Url"/>:
-    /// <c>{Url}/auth/v1/.well-known/jwks.json</c>.
+    /// Documento de discovery OIDC de GoTrue (contiene <c>jwks_uri</c>). Si está vacío
+    /// se deriva de <see cref="Url"/>: <c>{Url}/auth/v1/.well-known/openid-configuration</c>.
+    /// El <c>ConfigurationManager</c> lo usa para localizar y cachear el JWKS.
     /// </summary>
-    public string JwksUrl { get; init; } = string.Empty;
+    public string OidcMetadataUrl { get; init; } = string.Empty;
 
-    public string ResolvedJwksUrl =>
-        string.IsNullOrWhiteSpace(JwksUrl)
-            ? $"{Url.TrimEnd('/')}/auth/v1/.well-known/jwks.json"
-            : JwksUrl;
+    public string ResolvedOidcMetadataUrl =>
+        string.IsNullOrWhiteSpace(OidcMetadataUrl)
+            ? $"{Url.TrimEnd('/')}/auth/v1/.well-known/openid-configuration"
+            : OidcMetadataUrl;
 }

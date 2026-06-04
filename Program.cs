@@ -18,7 +18,7 @@ builder.Services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>
     var supabase = sp.GetRequiredService<IOptions<SupabaseOptions>>().Value;
     var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
     return new ConfigurationManager<OpenIdConnectConfiguration>(
-        supabase.ResolvedJwksUrl,
+        supabase.ResolvedOidcMetadataUrl,
         new OpenIdConnectConfigurationRetriever(),
         new HttpDocumentRetriever(httpClient) { RequireHttps = true });
 });
